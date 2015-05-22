@@ -1,0 +1,7 @@
+The purpose of this code is benchmarking scipy.spatial.cKDTree for PR4890
+with comparisons against SciPy 0.15.x and 0.16.x.
+
+
+
+
+
