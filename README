@@ -1,7 +1,22 @@
 The purpose of this code is benchmarking scipy.spatial.cKDTree for PR4890
 with comparisons against SciPy 0.15.x and 0.16.x.
 
+To build:
 
+$ python setup.py build_ext --inplace
+
+or
+
+$ python setup.py build_ext
+$ python setup.py install
+
+Requires:
+Cython
+NumPy
+SciPy 
+C++ compiler
+
+Only tested on Python 3.4. Should run on 2.7 as well.
 
 
 
