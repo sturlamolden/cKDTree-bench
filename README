@@ -11,6 +11,7 @@ $ python setup.py build_ext
 $ python setup.py install
 
 Requires:
+Python 3.4 or 2.7
 Cython
 NumPy
 SciPy 
