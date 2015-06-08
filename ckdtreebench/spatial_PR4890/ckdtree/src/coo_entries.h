@@ -8,7 +8,6 @@ struct coo_entry {
     npy_intp i;
     npy_intp j;
     npy_float64 v;
-    npy_float64 padding;
 };
 
 #endif

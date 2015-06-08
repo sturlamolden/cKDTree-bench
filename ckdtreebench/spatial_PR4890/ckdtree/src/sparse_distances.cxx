@@ -39,34 +39,29 @@ traverse(const ckdtree *self, const ckdtree *other,
         lnode1 = node1;
         
         if (node2->split_dim == -1) {  /* 1 & 2 are leaves */
-        
+            lnode2 = node2;
+            
             /* brute-force */
             const npy_float64 p = tracker->p;
             const npy_float64 tub = tracker->upper_bound;
-            const npy_float64 *self_data = self->raw_data;
-            const npy_intp *self_indices = self->raw_indices;
-            const npy_float64 *other_data = other->raw_data;
-            const npy_intp *other_indices = other->raw_indices;
+            const npy_float64 *sdata = self->raw_data;
+            const npy_intp *sindices = self->raw_indices;
+            const npy_float64 *odata = other->raw_data;
+            const npy_intp *oindices = other->raw_indices;
             const npy_intp m = self->m;
-            
-            lnode2 = node2;
-            
             const npy_intp start1 = lnode1->start_idx;
             const npy_intp start2 = lnode2->start_idx;
             const npy_intp end1 = lnode1->end_idx;
             const npy_intp end2 = lnode2->end_idx;
                         
-            prefetch_datapoint(self_data + 
-                 self_indices[start1]*m, m);
+            prefetch_datapoint(sdata + sindices[start1] * m, m);
             if (start1 < end1)
-               prefetch_datapoint(self_data + 
-                   self_indices[start1+1]*m, m);                         
+               prefetch_datapoint(sdata + sindices[start1+1] * m, m);                         
                         
             for (i = start1; i < end1; ++i) {
             
                 if (i < end1-2)
-                     prefetch_datapoint(self_data +
-                         self_indices[i+2]*m, m);
+                     prefetch_datapoint(sdata + sindices[i+2] * m, m);
             
                 /* Special care here to avoid duplicate pairs */
                 if (node1 == node2)
@@ -74,21 +69,18 @@ traverse(const ckdtree *self, const ckdtree *other,
                 else
                     min_j = start2;
                     
-                prefetch_datapoint(other_data + 
-                    other_indices[min_j]*m, m);
+                prefetch_datapoint(odata + oindices[min_j] * m, m);
                 if (min_j < end2)
-                    prefetch_datapoint(self_data + 
-                        other_indices[min_j+1]*m, m);
+                    prefetch_datapoint(sdata + oindices[min_j+1] * m, m);
                     
                 for (j = min_j; j < end2; ++j) {
                 
                     if (j < end2-2)
-                        prefetch_datapoint(other_data + 
-                            other_indices[j+2]*m, m);
+                        prefetch_datapoint(odata + oindices[j+2] * m, m);
                 
                     d = _distance_p(
-                            self_data + self_indices[i] * m,
-                            other_data + other_indices[j] * m,
+                            sdata + sindices[i] * m,
+                            odata + oindices[j] * m,
                             p, m, tub);
                         
                     if (d <= tub) {
@@ -97,12 +89,11 @@ traverse(const ckdtree *self, const ckdtree *other,
                         else if ((p != 1) && (p != infinity))
                             d = std::pow(d, 1. / p);
                          
-                        coo_entry e = {self_indices[i], other_indices[j], d, 0};
+                        coo_entry e = {sindices[i], oindices[j], d};
                         results->push_back(e);
                         
                         if (node1 == node2) {
-                            coo_entry e = {self_indices[j], other_indices[i],
-                                           d, 0};
+                            coo_entry e = {sindices[j], oindices[i], d};
                             results->push_back(e);
                         }
                             
