@@ -63,7 +63,8 @@ traverse(const ckdtree *self, const ckdtree *other, coo_entries *results,
         if (node2->split_dim == -1) {  /* 1 & 2 are leaves */
         
             /* brute-force */
-        
+            const npy_float64 p = tracker->p;
+            const npy_float64 tub = tracker->upper_bound;
             const npy_float64 *self_raw_data = self->raw_data;
             const npy_intp *self_raw_indices = self->raw_indices;
             const npy_float64 *other_raw_data = other->raw_data;
@@ -105,11 +106,13 @@ traverse(const ckdtree *self, const ckdtree *other, coo_entries *results,
                     d = _distance_p(
                             self_raw_data + self_raw_indices[i] * m,
                             other_raw_data + other_raw_indices[j] * m,
-                            tracker->p, m, tracker->upper_bound);
+                            p, m, tub);
                         
-                    if (d <= tracker->upper_bound) {
-                        if ((tracker->p != 1) && (tracker->p != infinity))
-                            d = std::pow(d, 1. / tracker->p);
+                    if (d <= tub) {
+                        if (NPY_LIKELY(p == 2.0))
+                            d = std::sqrt(d);
+                        else if ((p != 1) && (p != infinity))
+                            d = std::pow(d, 1. / p);
                         results->add(self->raw_indices[i],
                                      other->raw_indices[j], d);
                         if (node1 == node2)

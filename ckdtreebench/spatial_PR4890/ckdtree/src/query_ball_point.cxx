@@ -57,7 +57,9 @@ traverse_checking(const ckdtree *self,
     else if (node->split_dim == -1)  { /* leaf node */
         
         /* brute-force */
-                
+        const npy_float64 p = tracker->p;
+        const npy_float64 tub = tracker->upper_bound;
+        const npy_float64 *tpt = tracker->pt;        
         const npy_float64 *raw_data = self->raw_data;
         const npy_intp *raw_indices = self->raw_indices;
         const npy_intp m = self->m;
@@ -74,9 +76,9 @@ traverse_checking(const ckdtree *self,
                 prefetch_datapoint(raw_data+raw_indices[i+2]*m, m);
            
             d = _distance_p(raw_data + raw_indices[i] * m,
-                    tracker->pt, tracker->p, m, tracker->upper_bound);
+                    tpt, p, m, tub);
                 
-            if (d <= tracker->upper_bound) {
+            if (d <= tub) {
                 results->push_back((npy_intp) raw_indices[i]);
             }
         }

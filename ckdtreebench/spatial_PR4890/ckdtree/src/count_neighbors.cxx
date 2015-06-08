@@ -60,7 +60,8 @@ traverse(const ckdtree *self, const ckdtree *other,
             lnode1 = node1;
             if (node2->split_dim == -1) {  /* 1 & 2 are leaves */
                 lnode2 = node2;
-                                
+                const npy_float64 p = tracker->p;
+                const npy_float64 tmd = tracker->max_distance;                
                 const npy_float64 *self_raw_data = self->raw_data;
                 const npy_intp *self_raw_indices = self->raw_indices;
                 const npy_float64 *other_raw_data = other->raw_data;
@@ -97,7 +98,7 @@ traverse(const ckdtree *self, const ckdtree *other,
                         d = _distance_p(
                                 self_raw_data + self_raw_indices[i] * m,
                                 other_raw_data + other_raw_indices[j] * m,
-                                tracker->p, m, tracker->max_distance);
+                                p, m, tmd);
                         /*
                          * I think it's usually cheaper to test d against all 
                          * r's than to generate a distance array, sort it, then

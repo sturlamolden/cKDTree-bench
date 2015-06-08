@@ -97,7 +97,8 @@ traverse_checking(const ckdtree *self,
             lnode2 = node2;
             
             /* brute-force */
-            
+            const npy_float64 p = tracker->p;
+            const npy_float64 tub = tracker->upper_bound;
             const npy_float64 *raw_data = self->raw_data;
             const npy_intp *raw_indices = self->raw_indices;
             const npy_intp m = self->m;
@@ -129,9 +130,9 @@ traverse_checking(const ckdtree *self,
                     d = _distance_p(
                             raw_data + raw_indices[i] * m,
                             raw_data + raw_indices[j] * m,
-                            tracker->p, m, tracker->upper_bound);
+                            p, m, tub);
                 
-                    if (d <= tracker->upper_bound)
+                    if (d <= tub)
                         add_ordered_pair(results,
                                          raw_indices[i],
                                          raw_indices[j]);
