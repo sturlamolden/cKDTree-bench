@@ -18,7 +18,8 @@ def configuration(parent_package='', top_path=None):
     inc_dirs.append(get_numpy_include_dirs())
 
     # cKDTree    
-    ckdtree_src = ['query.cxx', 
+    ckdtree_src = ['build.cxx',
+                   'query.cxx', 
                    'globals.cxx',
                    'cpp_exc.cxx',
                    'query_pairs.cxx',
@@ -31,10 +32,11 @@ def configuration(parent_package='', top_path=None):
     
     ckdtree_headers = ['ckdtree_decl.h', 
                        'cpp_exc.h', 
-                       'query_methods.h',
+                       'ckdtree_methods.h',
                        'cpp_utils.h',
                        'rectangle.h',
-                       'ordered_pair.h']
+                       'ordered_pair.h',
+                       'partial_sort.h']
                        
     ckdtree_headers = [join('ckdtree', 'src', x) for x in ckdtree_headers]
         

@@ -170,6 +170,13 @@ _distance_p(const npy_float64 *x, const npy_float64 *y,
 } 
 
 
+/* Build methods in C++ for better speed and GIL release */
+
+CKDTREE_EXTERN PyObject*
+build_ckdtree(ckdtree *self, npy_intp start_idx, npy_intp end_idx,
+              npy_float64 *maxes, npy_float64 *mins, int _median, int _compact);
+
+
 /* Query methods in C++ for better speed and GIL release */
 
 CKDTREE_EXTERN PyObject*
