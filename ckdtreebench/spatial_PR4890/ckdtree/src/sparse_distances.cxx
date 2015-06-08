@@ -43,47 +43,52 @@ traverse(const ckdtree *self, const ckdtree *other,
             /* brute-force */
             const npy_float64 p = tracker->p;
             const npy_float64 tub = tracker->upper_bound;
-            const npy_float64 *self_raw_data = self->raw_data;
-            const npy_intp *self_raw_indices = self->raw_indices;
-            const npy_float64 *other_raw_data = other->raw_data;
-            const npy_intp *other_raw_indices = other->raw_indices;
+            const npy_float64 *self_data = self->raw_data;
+            const npy_intp *self_indices = self->raw_indices;
+            const npy_float64 *other_data = other->raw_data;
+            const npy_intp *other_indices = other->raw_indices;
             const npy_intp m = self->m;
             
             lnode2 = node2;
-                        
-            prefetch_datapoint(self_raw_data + 
-                 self_raw_indices[lnode1->start_idx]*m, m);
-            if (lnode1->start_idx < lnode1->end_idx)
-               prefetch_datapoint(self_raw_data + 
-                   self_raw_indices[lnode1->start_idx+1]*m, m);                         
-                        
-            for (i = lnode1->start_idx; i < lnode1->end_idx; ++i) {
             
-                if (i < lnode1->end_idx-2)
-                     prefetch_datapoint(self_raw_data +
-                         self_raw_indices[i+2]*m, m);
+            const npy_intp start1 = lnode1->start_idx;
+            const npy_intp start2 = lnode2->start_idx;
+            const npy_intp end1 = lnode1->end_idx;
+            const npy_intp end2 = lnode2->end_idx;
+                        
+            prefetch_datapoint(self_data + 
+                 self_indices[start1]*m, m);
+            if (start1 < end1)
+               prefetch_datapoint(self_data + 
+                   self_indices[start1+1]*m, m);                         
+                        
+            for (i = start1; i < end1; ++i) {
+            
+                if (i < end1-2)
+                     prefetch_datapoint(self_data +
+                         self_indices[i+2]*m, m);
             
                 /* Special care here to avoid duplicate pairs */
                 if (node1 == node2)
                     min_j = i+1;
                 else
-                    min_j = lnode2->start_idx;
+                    min_j = start2;
                     
-                prefetch_datapoint(other_raw_data + 
-                    other_raw_indices[min_j]*m, m);
-                if (min_j < lnode2->end_idx)
-                    prefetch_datapoint(self_raw_data + 
-                        other_raw_indices[min_j+1]*m, m);
+                prefetch_datapoint(other_data + 
+                    other_indices[min_j]*m, m);
+                if (min_j < end2)
+                    prefetch_datapoint(self_data + 
+                        other_indices[min_j+1]*m, m);
                     
-                for (j = min_j; j < lnode2->end_idx; ++j) {
+                for (j = min_j; j < end2; ++j) {
                 
-                    if (j < lnode2->end_idx-2)
-                        prefetch_datapoint(other_raw_data + 
-                            other_raw_indices[j+2]*m, m);
+                    if (j < end2-2)
+                        prefetch_datapoint(other_data + 
+                            other_indices[j+2]*m, m);
                 
                     d = _distance_p(
-                            self_raw_data + self_raw_indices[i] * m,
-                            other_raw_data + other_raw_indices[j] * m,
+                            self_data + self_indices[i] * m,
+                            other_data + other_indices[j] * m,
                             p, m, tub);
                         
                     if (d <= tub) {
@@ -91,22 +96,12 @@ traverse(const ckdtree *self, const ckdtree *other,
                             d = std::sqrt(d);
                         else if ((p != 1) && (p != infinity))
                             d = std::pow(d, 1. / p);
-                        /*    
-                        results->add(self->raw_indices[i],
-                                     other->raw_indices[j], d);
-                        */
-                        coo_entry e = {self->raw_indices[i],
-                                       other->raw_indices[j], 
-                                       d, 0};
+                         
+                        coo_entry e = {self_indices[i], other_indices[j], d, 0};
                         results->push_back(e);
                         
                         if (node1 == node2) {
-                            /*
-                            results->add(self->raw_indices[j],
-                                        other->raw_indices[i], d);
-                            */
-                            coo_entry e = {self->raw_indices[j],
-                                           other->raw_indices[i], 
+                            coo_entry e = {self_indices[j], other_indices[i],
                                            d, 0};
                             results->push_back(e);
                         }
