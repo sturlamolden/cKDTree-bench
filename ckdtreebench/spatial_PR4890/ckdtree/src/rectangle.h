@@ -413,7 +413,7 @@ struct RectRectDistanceTracker {
         --stack_size;
         
         /* assert stack_size >= 0 */
-        if (stack_size < 0) {
+        if (NPY_UNLIKELY(stack_size < 0)) {
             const char *msg = "Bad stack size. This error should never occur.";
             throw std::logic_error(msg);
         }
@@ -613,7 +613,7 @@ struct PointRectDistanceTracker {
         --stack_size;
         
         /* assert stack_size >= 0 */
-        if (stack_size < 0) {
+        if (NPY_UNLIKELY(stack_size < 0)) {
             const char *msg = "Bad stack size. This error should never occur.";
             throw std::logic_error(msg);
         }
