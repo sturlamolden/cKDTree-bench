@@ -19,33 +19,11 @@
 #include "ckdtree_methods.h"
 #include "cpp_exc.h"
 #include "rectangle.h"
-
-
-struct coo_entries {
-
-    std::vector<npy_intp> *pi;
-    std::vector<npy_intp> *pj;
-    std::vector<npy_float64> *pv;
-        
-    coo_entries(std::vector<npy_intp> *_pi, 
-                std::vector<npy_intp> *_pj, 
-                std::vector<npy_float64> *_pv) {                
-        pi = _pi;
-        pj = _pj;
-        pv = _pv;
-    };
-        
-    inline void
-    add(npy_intp i, npy_intp j, npy_float64 v) {
-        pi->push_back(i);
-        pj->push_back(j);
-        pv->push_back(v);
-    };
-};
-
+#include "coo_entries.h"
 
 static void
-traverse(const ckdtree *self, const ckdtree *other, coo_entries *results,
+traverse(const ckdtree *self, const ckdtree *other, 
+         std::vector<coo_entry> *results,
          const ckdtreenode *node1, const ckdtreenode *node2,
          RectRectDistanceTracker *tracker)
 {
@@ -113,11 +91,26 @@ traverse(const ckdtree *self, const ckdtree *other, coo_entries *results,
                             d = std::sqrt(d);
                         else if ((p != 1) && (p != infinity))
                             d = std::pow(d, 1. / p);
+                        /*    
                         results->add(self->raw_indices[i],
                                      other->raw_indices[j], d);
-                        if (node1 == node2)
+                        */
+                        coo_entry e = {self->raw_indices[i],
+                                       other->raw_indices[j], 
+                                       d, 0};
+                        results->push_back(e);
+                        
+                        if (node1 == node2) {
+                            /*
                             results->add(self->raw_indices[j],
                                         other->raw_indices[i], d);
+                            */
+                            coo_entry e = {self->raw_indices[j],
+                                           other->raw_indices[i], 
+                                           d, 0};
+                            results->push_back(e);
+                        }
+                            
                     }
                 }
             }
@@ -183,9 +176,7 @@ extern "C" PyObject*
 sparse_distance_matrix(const ckdtree *self, const ckdtree *other,
                        const npy_float64 p,
                        const npy_float64 max_distance,
-                       std::vector<npy_intp> *results_i,
-                       std::vector<npy_intp> *results_j,
-                       std::vector<npy_float64> *results_v)
+                       std::vector<coo_entry> *results)
 {
 
     /* release the GIL */
@@ -194,14 +185,10 @@ sparse_distance_matrix(const ckdtree *self, const ckdtree *other,
         try {
         
             Rectangle r1(self->m, self->raw_mins, self->raw_maxes);
-            Rectangle r2(other->m, other->raw_mins, other->raw_maxes); 
-            
+            Rectangle r2(other->m, other->raw_mins, other->raw_maxes);             
             RectRectDistanceTracker tracker(r1, r2, p, 0, max_distance);
-                    
-            coo_entries results(results_i, results_j, results_v);
             
-            traverse(self, other, &results, self->ctree, other->ctree, 
-                &tracker);
+            traverse(self, other, results, self->ctree, other->ctree, &tracker);
                                                
         } 
         catch(...) {
